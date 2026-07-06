@@ -1,4 +1,4 @@
-// jsdom + 真 WebCrypto：完整跑「輸密碼→解密→導覽→測驗→錯題本」
+// jsdom + 真 WebCrypto：端到端 v2.1（解密→儀表板→練習→點字彈窗→生字→分類錯題→翻卡→首答統計）
 const fs=require('fs'),path=require('path');
 const {JSDOM}=require(path.join('..','..','17_國中英語文法','node_modules','jsdom'));
 const {webcrypto}=require('crypto');
@@ -6,46 +6,60 @@ const html=fs.readFileSync(path.join(__dirname,'..','index.html'),'utf8');
 let errs=[];
 const dom=new JSDOM(html,{runScripts:'dangerously',pretendToBeVisual:true,url:'http://localhost/',
   beforeParse(w){w.scrollTo=()=>{};w.confirm=()=>true;
-    Object.defineProperty(w,'crypto',{value:webcrypto,configurable:true});  // 注入真 WebCrypto
+    Object.defineProperty(w,'crypto',{value:webcrypto,configurable:true});
+    w.SpeechSynthesisUtterance=function(){};w.speechSynthesis={cancel(){},speak(){}};
     w.onerror=(m)=>errs.push('onerror:'+m);}});
 const w=dom.window,d=w.document;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-async function until(fn,ms=3000){const t=Date.now();while(Date.now()-t<ms){if(fn())return true;await sleep(30);}return false;}
+async function until(fn,ms=5000){const t=Date.now();while(Date.now()-t<ms){if(fn())return true;await sleep(30);}return false;}
+const S=()=>JSON.parse(w.localStorage.getItem('gkq_v2'));
 (async()=>{
   try{
-    await sleep(200);
-    const $=s=>d.querySelector(s);
-    console.assert($('#pw'),'FAIL 無密碼閘');
-    // 錯密碼
-    $('#pw').value='0000';$('#go').click();
-    await until(()=>$('#err')&&/不正確/.test($('#err').textContent));
-    console.assert(/不正確/.test($('#err').textContent),'FAIL 錯密碼未擋');
-    // 對密碼 1019 → 解密
+    await sleep(200);const $=s=>d.querySelector(s),$$=s=>[...d.querySelectorAll(s)];
+    $('#pw').value='0000';$('#go').click();await until(()=>/不正確/.test($('#err').textContent));
+    console.assert(/不正確/.test($('#err').textContent),'FAIL 錯密碼');
     $('#pw').value='1019';$('#go').click();
-    const ok=await until(()=>d.getElementById('tabbar').style.display==='flex',5000);
-    console.assert(ok,'FAIL 1019 解密後未進入');
-    console.assert(w.DB&&w.DB.grammar,'FAIL DB 未載入');
-    // 文法導覽
-    let rows=[...d.querySelectorAll('.row')];console.assert(rows.length>=3,'FAIL 書系少');
-    rows[0].click();
-    let units=[...d.querySelectorAll('.row')];units.find(r=>/題/.test(r.textContent)).click();
-    [...d.querySelectorAll('.btn')].find(b=>/開始練習/.test(b.textContent)).click();
+    console.assert(await until(()=>d.getElementById('tabbar').style.display==='flex'),'FAIL 未進入');
+    // 儀表板：每日目標/連續/最近7天
+    console.assert(/連續/.test(d.body.textContent)&&/每日|今日/.test(d.body.textContent)&&/最近 7 天/.test(d.body.textContent),'FAIL 儀表板缺元素');
+    console.assert($$('.tabbar button').length===5,'FAIL 導覽非5');
+    // 練習
+    w.setTab('grammar');$$('.row').find(r=>/單元/.test(r.textContent)).click();
+    $$('.row').find(r=>/題/.test(r.textContent)).click();
+    $$('.btn').find(b=>/開始練習/.test(b.textContent)).click();
     console.assert($('#opts'),'FAIL 無題目');
-    // 答錯→錯題本
+    // 點字→彈窗（不立即加入）
+    const wd=$('.wd');let sheetOpened=false,vocabAdded=false;
+    if(wd){wd.click();sheetOpened=$('#sheet').classList.contains('on');
+      const add=$('[data-addv]');if(add){add.click();vocabAdded=Object.keys(S().vocab).length>=1;}}
+    console.assert(!wd||sheetOpened,'FAIL 點字未開彈窗');
+    console.assert(!wd||vocabAdded,'FAIL 彈窗加入生字失敗');
+    // 首答統計：作答前 ans=0，答一題後 ans=1
+    const ansBefore=S().stat.ans;
     const q=w.DB.Q[w.quiz.ids[0]];
-    d.querySelectorAll('#opts .opt')[(q.answer+1)%q.options.length].click();
+    $$('#opts .opt')[(q.answer+1)%q.options.length].click();
     console.assert(/答錯/.test($('#fb').textContent),'FAIL 答錯回饋');
-    console.assert(Object.keys(JSON.parse(w.localStorage.getItem('gkq_v1')).wrong).length>=1,'FAIL 錯題未入本');
-    // 記住密碼
-    console.assert(w.localStorage.getItem('gkq_pw')==='1019','FAIL 未記住密碼');
+    console.assert(S().stat.ans===ansBefore+1,'FAIL 首答統計未+1');
+    console.assert(S().first[q.id]===1,'FAIL first 未記');
+    const wobj=S().wrong[q.id];console.assert(wobj&&wobj.kn&&wobj.un,'FAIL 錯題無出處');
+    // 再答同題不應重複計入首答 stat（回上一題重做）
+    // 複習分類
+    w.setTab('review');
+    console.assert(d.body.textContent.includes(wobj.kn),'FAIL 錯題本未顯示書系');
+    w.rvSeg('vocab');console.assert(/生字/.test(d.body.textContent),'FAIL 生字本頁');
+    // 翻卡：翻面顯示中文（若字典有）
+    if(Object.keys(S().vocab).length){w.startVocab();console.assert($('.flash'),'FAIL 翻卡未出現');
+      $('#flip').click();await sleep(20);w.vqRate(1);}
     // 閱讀 passage
-    w.setTab('reading');let rr=[...d.querySelectorAll('.row')];rr[0].click();
-    let ru=[...d.querySelectorAll('.row')];ru.find(r=>/題/.test(r.textContent)).click();
-    [...d.querySelectorAll('.btn')].find(b=>/開始練習/.test(b.textContent)).click();
+    w.setTab('reading');$$('.row').find(r=>/單元/.test(r.textContent)).click();
+    $$('.row').find(r=>/題/.test(r.textContent)).click();$$('.btn').find(b=>/開始練習/.test(b.textContent)).click();
     const rq=w.DB.Q[w.quiz.ids[0]];console.assert(!rq.pid||$('.psg'),'FAIL 閱讀無文本');
-    // 設定版權聲明
-    w.setTab('settings');console.assert(/版權聲明/.test(d.body.textContent),'FAIL 無版權聲明');
+    // 設定：每日目標
+    w.setTab('settings');console.assert(/每日目標/.test(d.body.textContent)&&/版權聲明/.test(d.body.textContent),'FAIL 設定缺');
+    // dict 存在
+    console.assert(w.DB.dict&&Object.keys(w.DB.dict).length>500,'FAIL 生字字典缺');
+    console.log('生字字典字數:',Object.keys(w.DB.dict).length);
     console.log('JS錯誤',errs.length,errs.slice(0,3));
-    console.log(errs.length===0?'✅ 端到端（含解密）全過':'⚠️ 有 JS 錯誤');
+    console.log(errs.length===0?'✅ v2.1 端到端全過':'⚠️ 有 JS 錯誤');
   }catch(e){console.log('❌ 例外',e.message,(e.stack||'').split('\n')[1]);}
 })();

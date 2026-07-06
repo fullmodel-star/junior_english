@@ -147,13 +147,21 @@ PDB = {pid: passById[pid] for pid in usedPids if pid in passById}
 # 文法講義：topicKey -> note
 NOTES = {k: notes[k] for k in notes}
 
+# ---- 生字中文小字典（取自 master 2000 課綱字，非版權；供點字顯示中文）----
+DICT = {}
+for v in m.get('vocab', []):
+    w = (v.get('word') or '').strip().lower()
+    if w and w not in DICT:
+        DICT[w] = {'zh': v.get('zh', ''), 'pos': v.get('pos', '')}
+
 DATA = {
-    'ver': '1.0-internal',
+    'ver': '2.1-internal',
     'grammar': gram_cats,
     'reading': read_cats,
     'Q': QDB,
     'P': PDB,
     'notes': NOTES,
+    'dict': DICT,
 }
 
 # ---- 統計輸出 ----

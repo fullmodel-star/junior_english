@@ -489,12 +489,13 @@ function mockResultView(){var n=mock.ids.length,pct=pctOf(mock.score,n);
 
 /* ===== 生字造句練習（用得出） ===== */
 var usq=null;
-function usableVocab(){return Object.keys(S.vocab).filter(w=>{var d=DB.dict[w];return d&&d.eg&&new RegExp('\\b'+w+'\\b','i').test(d.eg);});}
+function reEsc(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+function usableVocab(){return Object.keys(S.vocab).filter(w=>{var d=DB.dict[w];return d&&d.eg&&new RegExp('\\b'+reEsc(w)+'\\b','i').test(d.eg);});}
 function startUsage(){var list=usableVocab();if(list.length<1){toast('目前沒有可造句的生字（需字典有例句）');return}
   usq={list:sample(list,Math.min(10,list.length)),i:0};view.tab='review';nav=[];go({t:'usage'});}
 function usageView(){if(usq.i>=usq.list.length){app.innerHTML=topBar('造句練習',false)+'<div class="card center"><div style="font-size:48px">🎉</div><h2>造句練習完成！</h2><button class="btn" id="ud">回複習</button></div>';document.getElementById('ud').onclick=()=>setTab('review');return;}
   var w=usq.list[usq.i],d=DB.dict[w];
-  var blanked=d.eg.replace(new RegExp('\\b'+w+'\\b','i'),'______');
+  var blanked=d.eg.replace(new RegExp('\\b'+reEsc(w)+'\\b','i'),'______');
   var pool=Object.keys(DB.dict).filter(x=>x!==w&&DB.dict[x].pos===d.pos);if(pool.length<3)pool=Object.keys(DB.dict).filter(x=>x!==w);
   var opts=[w].concat(sample(pool,3));
   // 洗牌（固定式）
@@ -541,10 +542,12 @@ function settingsView(){var g=catStats(DB.grammar),r=catStats(DB.reading),done=g
 
 /* ===== FAB ===== */
 function refreshFab(){var n=Object.keys(S.vocab).filter(w=>(S.vocab[w].reps||0)<2).length;
-  if(n&&DB&&view.tab!=='review'&&!(view.cur&&view.cur.t==='vocabcard')){fab.style.display='flex';fab.textContent='⭐ 生字 '+n;fab.onclick=()=>startVocab();}else fab.style.display='none';}
+  var hide=view.tab==='review'||(view.cur&&['vocabcard','usage','mock','mockcfg','mockresult'].indexOf(view.cur.t)>=0);
+  if(n&&DB&&!hide){fab.style.display='flex';fab.textContent='⭐ 生字 '+n;fab.onclick=()=>startVocab();}else fab.style.display='none';}
 
 /* ===== 路由 ===== */
 function paint(){window.scrollTo(0,0);var v=view.cur;
+  if(mockTimer&&!(v&&v.t==='mock')){clearInterval(mockTimer);mockTimer=null;} // 離開模擬卷即停錶
   if(view.tab==='home'&&!v)dashView();
   else if(view.tab==='review'&&!v)reviewView();
   else if(view.tab==='settings'&&!v)settingsView();

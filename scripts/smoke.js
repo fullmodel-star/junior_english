@@ -71,6 +71,9 @@ const S=()=>JSON.parse(w.localStorage.getItem('gkq_v2'));
     d.getElementById('msub2').click(); // 提前交卷（confirm=>true）
     console.assert(w.mock.score!=null&&/測驗結果/.test(d.body.textContent),'FAIL 模擬卷未出結果');
     console.log('模擬卷:',w.mock.ids.length,'題，得分',w.mock.score);
+    // 計時器：開始模擬後離開分頁應停錶
+    w.go({t:'mockcfg'});$('#mgo').click();console.assert(w.mockTimer,'FAIL 計時器未啟動');
+    w.setTab('home');console.assert(w.mockTimer===null,'FAIL 離開模擬卷計時器未停');
     // #3 生字造句練習
     w.setTab('review');
     console.assert(typeof w.usableVocab==='function','FAIL 無造句函式');

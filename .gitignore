@@ -1,0 +1,10 @@
+# ── 絕不上傳：明文版權內容與建置暫存 ──
+# data_supplement/ = 子代理抽取的「明文」題目，只留本機
+data_supplement/
+node_modules/
+_shot*.html
+*.plain.json
+_gkq_data_plain.json
+
+# 只公開加密後的 index.html + 圖示 + manifest/sw + README。
+# scripts/ 內只有建置程式與版面模板，無題庫內容，故保留。

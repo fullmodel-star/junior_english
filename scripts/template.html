@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#3730a3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="國中英文題庫">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>國中英文題庫 · 內部版</title>
+<style>
+:root{--bg:#eef1f8;--card:#fff;--ink:#1e2233;--mut:#5c6685;--line:#e3e7f2;
+--brand:#4338ca;--brand2:#6d5ae0;--ok:#0f9d6e;--bad:#d64550;--warn:#c77700;
+--r:16px;--sh:0 2px 10px rgba(40,44,80,.07),0 8px 24px rgba(40,44,80,.06);}
+@media(prefers-color-scheme:dark){:root{--bg:#12141f;--card:#1b1e2c;--ink:#e8eaf4;
+--mut:#9aa3c2;--line:#2a2e40;--brand:#8b83f0;--brand2:#a99cf5;}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+font-family:-apple-system,"Segoe UI","Noto Sans TC",system-ui,sans-serif;
+line-height:1.6;overscroll-behavior-y:none}
+#app{max-width:520px;margin:0 auto;min-height:100vh;padding:0 14px 96px}
+h1,h2,h3{margin:.2em 0}
+button{font:inherit;cursor:pointer;border:0;background:none;color:inherit}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+box-shadow:var(--sh);padding:16px;margin:12px 0}
+.row{background:var(--card);border:1px solid var(--line);border-radius:14px;
+padding:14px 16px;margin:10px 0;box-shadow:var(--sh);display:flex;
+align-items:center;gap:12px;width:100%;text-align:left;transition:.15s}
+.row:active{transform:scale(.985)}
+.row .t{font-weight:700;font-size:16px}
+.row .s{font-size:13px;color:var(--mut)}
+.row .chev{margin-left:auto;color:var(--mut);font-size:20px}
+.pill{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;
+background:color-mix(in srgb,var(--brand) 14%,transparent);color:var(--brand);font-weight:600}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+background:linear-gradient(135deg,var(--brand),var(--brand2));color:#fff;
+padding:13px 18px;border-radius:12px;font-weight:700;width:100%;box-shadow:var(--sh)}
+.btn.ghost{background:none;color:var(--brand);border:1.5px solid var(--brand);box-shadow:none}
+.btn.sm{width:auto;padding:9px 14px;font-size:14px}
+.top{position:sticky;top:0;background:var(--bg);padding:14px 2px 8px;z-index:20;
+display:flex;align-items:center;gap:10px}
+.top .back{font-size:22px;color:var(--brand);padding:2px 6px}
+.top h2{font-size:19px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabbar{position:fixed;left:0;right:0;bottom:0;background:var(--card);
+border-top:1px solid var(--line);display:flex;z-index:30;
+padding-bottom:env(safe-area-inset-bottom)}
+.tabbar button{flex:1;padding:9px 0 8px;font-size:11px;color:var(--mut);
+display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabbar button .ic{font-size:21px;line-height:1}
+.tabbar button.on{color:var(--brand);font-weight:700}
+.opt{display:block;width:100%;text-align:left;border:1.5px solid var(--line);
+background:var(--card);border-radius:13px;padding:13px 15px;margin:9px 0;font-size:15px;transition:.12s}
+.opt:active{transform:scale(.99)}
+.opt.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 12%,var(--card))}
+.opt.bad{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,var(--card))}
+.opt .k{font-weight:800;margin-right:8px;color:var(--brand)}
+.stem{font-size:17px;font-weight:600;margin:6px 0 14px;white-space:pre-wrap}
+.exp{background:color-mix(in srgb,var(--brand) 7%,var(--card));border:1px solid var(--line);
+border-radius:12px;padding:12px 14px;margin-top:12px;font-size:14.5px;white-space:pre-wrap}
+.psg{background:color-mix(in srgb,var(--brand) 5%,var(--card));border:1px solid var(--line);
+border-radius:12px;padding:13px 15px;margin:10px 0;font-size:15px;white-space:pre-wrap;line-height:1.75}
+.muted{color:var(--mut)}.center{text-align:center}
+.prog{height:7px;background:var(--line);border-radius:99px;overflow:hidden;margin:8px 0}
+.prog>i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand2))}
+input[type=password],input[type=text]{width:100%;padding:13px 14px;border-radius:12px;
+border:1.5px solid var(--line);background:var(--card);color:var(--ink);font:inherit}
+.gate{max-width:400px;margin:0 auto;padding-top:12vh}
+.lockbadge{font-size:52px;text-align:center}
+label.ck{display:flex;align-items:center;gap:9px;font-size:14px;color:var(--mut);margin:12px 2px}
+label.ck input{width:18px;height:18px}
+.note h4{margin:14px 0 4px;font-size:15px;color:var(--brand)}
+.note ul{margin:6px 0;padding-left:20px}
+.eg{font-style:italic;color:var(--mut);margin:2px 0}
+.toast{position:fixed;left:50%;bottom:78px;transform:translateX(-50%);
+background:#222;color:#fff;padding:9px 16px;border-radius:99px;font-size:14px;
+z-index:60;opacity:0;transition:.25s;pointer-events:none}
+.toast.on{opacity:.95}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:14px;text-align:center}
+.stat .n{font-size:26px;font-weight:800;color:var(--brand)}
+.stat .l{font-size:12px;color:var(--mut)}
+.copyr{font-size:12px;color:var(--mut);line-height:1.7;background:var(--card);
+border:1px dashed var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="tabbar" id="tabbar" style="display:none"></div>
+<div class="toast" id="toast"></div>
+<script>/*__DATA__*/</script>
+<script>
+"use strict";
+/* ---------- 資料解密（密碼=AES-256-GCM 金鑰；WebCrypto，https/localhost/Chrome file:// 可用） ---------- */
+function b64buf(s){var b=atob(s),u=new Uint8Array(b.length);
+  for(var i=0;i<b.length;i++)u[i]=b.charCodeAt(i);return u;}
+async function deriveKey(pw,saltB64,iter){
+  var km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64buf(saltB64),iterations:iter,hash:'SHA-256'},
+    km,{name:'AES-GCM',length:256},false,['decrypt']);
+}
+async function decryptData(pw){
+  var E=window.ENC, key=await deriveKey(pw,E.salt,E.iter);
+  var pt=await crypto.subtle.decrypt({name:'AES-GCM',iv:b64buf(E.iv)},key,b64buf(E.ct));
+  return JSON.parse(new TextDecoder().decode(pt)); // 密碼錯誤會丟例外
+}
+
+/* ---------- 狀態 ---------- */
+var DB=null, LS=localStorage, SK='gkq_v1';
+function load(){try{return JSON.parse(LS.getItem(SK))||{}}catch(e){return{}}}
+function save(s){LS.setItem(SK,JSON.stringify(s))}
+var S=load();
+S.wrong=S.wrong||{}; S.done=S.done||{}; S.read=S.read||{};
+S.stat=S.stat||{ans:0,ok:0}; save(S);
+
+var app=document.getElementById('app'), tabbar=document.getElementById('tabbar');
+var view={tab:'grammar'}, nav=[];
+function esc(t){return(t==null?'':''+t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
+function toast(t){var e=document.getElementById('toast');e.textContent=t;e.classList.add('on');
+clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('on'),1600)}
+
+/* ---------- 密碼鎖（資料以密碼加密，解得開＝密碼正確） ---------- */
+function renderGate(msg){
+  tabbar.style.display='none';
+  app.innerHTML=`<div class="gate">
+    <div class="lockbadge">🔒</div>
+    <h2 class="center">國中英文題庫 · 內部版</h2>
+    <p class="center muted" style="font-size:14px">本題庫為版權教材，資料已加密，僅供內部複習使用。</p>
+    <div class="card">
+      <input type="password" id="pw" placeholder="請輸入通行密碼" autocomplete="off" inputmode="numeric">
+      <label class="ck"><input type="checkbox" id="rm" checked>記住登入（本裝置）</label>
+      <button class="btn" id="go">進入</button>
+      <p class="muted center" id="err" style="font-size:13px;min-height:18px">${msg||''}</p>
+    </div>
+  </div>`;
+  var inp=document.getElementById('pw'), go=document.getElementById('go');
+  async function tryin(){
+    go.disabled=true;document.getElementById('err').textContent='解密中…';
+    try{
+      var data=await decryptData(inp.value);
+      DB=data;
+      if(document.getElementById('rm').checked)LS.setItem('gkq_pw',inp.value);
+      boot();
+    }catch(e){
+      go.disabled=false;
+      document.getElementById('err').textContent='密碼不正確';inp.select();
+    }
+  }
+  go.onclick=tryin;
+  inp.addEventListener('keydown',e=>{if(e.key==='Enter')tryin()});
+  inp.focus();
+}
+async function autoUnlock(){
+  var pw=LS.getItem('gkq_pw');
+  if(!pw){renderGate();return;}
+  try{DB=await decryptData(pw);boot();}
+  catch(e){LS.removeItem('gkq_pw');renderGate();}
+}
+
+/* ---------- 導覽 ---------- */
+function go(v){nav.push(view.cur);view.cur=v;paint()}
+function back(){view.cur=nav.pop();paint()}
+function setTab(t){view.tab=t;view.cur=null;nav=[];paint()}
+
+function cats(){return view.tab==='grammar'?DB.grammar:DB.reading}
+function findSeries(k){return cats().find(c=>c.key===k)}
+
+/* ---------- 畫面 ---------- */
+function topBar(title,showBack){
+  return `<div class="top">${showBack?'<button class="back" id="bk">‹</button>':''}
+    <h2>${esc(title)}</h2></div>`;
+}
+function bindBack(){var b=document.getElementById('bk');if(b)b.onclick=back}
+
+function seriesDoneCount(c){
+  var ids=[];c.units.forEach(u=>ids.push(...u.qids));
+  var d=ids.filter(id=>S.done[id]).length;return[d,ids.length];
+}
+
+function homeList(){
+  var cs=cats();
+  var html=topBar(view.tab==='grammar'?'文法題庫':'閱讀題庫',false);
+  html+='<div class="muted" style="font-size:13px;margin:2px 4px 8px">依書系選擇 → 主題單元 → 開始練習</div>';
+  cs.forEach(c=>{
+    var[d,n]=seriesDoneCount(c);
+    html+=`<button class="row" onclick="go({t:'series',k:'${c.key}'})">
+      <div><div class="t">${esc(c.name)}</div>
+      <div class="s">${c.units.length} 單元 · ${n} 題 · 已練 ${d}</div></div>
+      <span class="chev">›</span></button>`;
+  });
+  app.innerHTML=html;bindBack();
+}
+
+function seriesView(k){
+  var c=findSeries(k);
+  var html=topBar(c.name,true);
+  c.units.forEach(u=>{
+    var d=u.qids.filter(id=>S.done[id]).length, pct=Math.round(d/u.qids.length*100);
+    var note=(view.tab==='grammar'&&DB.notes[u.key])?' · 📖講義':'';
+    html+=`<button class="row" onclick="go({t:'unit',k:'${k}',u:'${esc(u.key)}'})">
+      <div style="flex:1"><div class="t">${esc(u.name)}</div>
+      <div class="s">${u.qids.length} 題 · 已練 ${d}${note}</div>
+      <div class="prog"><i style="width:${pct}%"></i></div></div>
+      <span class="chev">›</span></button>`;
+  });
+  app.innerHTML=html;bindBack();
+}
+
+function unitView(k,uk){
+  var c=findSeries(k), u=c.units.find(x=>x.key===uk);
+  var html=topBar(u.name,true);
+  var note=view.tab==='grammar'?DB.notes[uk]:null;
+  if(note){
+    var read=S.read[uk];
+    html+=`<button class="row" onclick="go({t:'note',k:'${k}',u:'${esc(uk)}'})">
+      <div><div class="t">📖 觀念講義${read?' ✓':''}</div>
+      <div class="s">先讀觀念、規則與常見錯誤</div></div><span class="chev">›</span></button>`;
+  }
+  if(view.tab==='reading'&&u.passages&&u.passages.length){
+    html+=`<button class="row" onclick="go({t:'psg',k:'${k}',u:'${esc(uk)}'})">
+      <div><div class="t">📄 閱讀文本</div>
+      <div class="s">${u.passages.length} 篇短文</div></div><span class="chev">›</span></button>`;
+  }
+  html+=`<div class="card center">
+    <div class="stem" style="justify-content:center">共 ${u.qids.length} 題</div>
+    <button class="btn" onclick="startQuiz('${k}','${esc(uk)}','all')">開始練習</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="startQuiz('${k}','${esc(uk)}','undone')">只練沒做過的</button>
+  </div>`;
+  app.innerHTML=html;bindBack();
+}
+
+function noteView(uk){
+  var n=DB.notes[uk];S.read[uk]=1;save(S);
+  var html=topBar('觀念講義',true)+'<div class="card note">';
+  if(n.summary)html+=`<p>${esc(n.summary)}</p>`;
+  (n.sections||[]).forEach(s=>{
+    html+=`<h4>${esc(s.h||'')}</h4>`;
+    if(s.body)html+=`<p>${esc(s.body)}</p>`;
+    (s.examples||[]).forEach(e=>html+=`<div class="eg">· ${esc(e)}</div>`);
+  });
+  if(n.mistakes&&n.mistakes.length){html+='<h4>⚠️ 常見錯誤</h4><ul>';
+    n.mistakes.forEach(x=>html+=`<li>${esc(x)}</li>`);html+='</ul>';}
+  if(n.tip)html+=`<h4>💡 小撇步</h4><p>${esc(n.tip)}</p>`;
+  html+='</div>';
+  app.innerHTML=html;bindBack();
+}
+
+function psgView(k,uk){
+  var c=findSeries(k), u=c.units.find(x=>x.key===uk);
+  var html=topBar('閱讀文本',true);
+  (u.passages||[]).forEach((pid,i)=>{
+    var p=DB.P[pid];if(!p)return;
+    html+=`<div class="card"><div class="s muted">短文 ${i+1}${p.genre?' · '+esc(p.genre):''}</div>
+      <div class="psg">${esc(p.text)}</div></div>`;
+  });
+  if(!(u.passages||[]).length)html+='<p class="muted center">（本單元無獨立文本）</p>';
+  app.innerHTML=html;bindBack();
+}
+
+/* ---------- 測驗引擎 ---------- */
+var quiz=null;
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=(i*2654435761+7)%(i+1);
+  [a[i],a[j]]=[a[j],a[i]]}return a}
+function startQuiz(k,uk,mode){
+  var c=findSeries(k), u=c.units.find(x=>x.key===uk);
+  var ids=u.qids.slice();
+  if(mode==='undone')ids=ids.filter(id=>!S.done[id]);
+  if(!ids.length){toast('這裡已全部練過 🎉');return}
+  quiz={ids:ids,i:0,k:k,uk:uk,name:u.name,ok:0,tab:view.tab,src:'unit'};
+  go({t:'quiz'});
+}
+function startWrong(list,title){
+  if(!list.length){toast('錯題本是空的');return}
+  quiz={ids:list.slice(),i:0,name:title,ok:0,src:'wrong'};
+  go({t:'quiz'});
+}
+function quizView(){
+  if(quiz.i>=quiz.ids.length)return scoreView();
+  var q=DB.Q[quiz.ids[quiz.i]];
+  var html=topBar(quiz.name+'  '+(quiz.i+1)+'/'+quiz.ids.length,true);
+  html+='<div class="prog"><i style="width:'+(quiz.i/quiz.ids.length*100)+'%"></i></div>';
+  html+='<div class="card">';
+  if(q.pid&&DB.P[q.pid])html+='<div class="psg">'+esc(DB.P[q.pid].text)+'</div>';
+  html+='<div class="stem">'+esc(q.stem)+'</div><div id="opts">';
+  q.options.forEach((o,i)=>{
+    html+=`<button class="opt" onclick="answer(${i})"><span class="k">${'ABCD'[i]}</span>${esc(o)}</button>`;
+  });
+  html+='</div><div id="fb"></div></div>';
+  app.innerHTML=html;bindBack();
+}
+function answer(pick){
+  var q=DB.Q[quiz.ids[quiz.i]], correct=q.answer, right=pick===correct;
+  var opts=document.querySelectorAll('#opts .opt');
+  opts.forEach((el,i)=>{el.onclick=null;
+    if(i===correct)el.classList.add('ok');
+    else if(i===pick)el.classList.add('bad');});
+  // 統計
+  S.stat.ans++; if(right)S.stat.ok++;
+  if(right){
+    S.done[q.id]=1;
+    if(S.wrong[q.id]){S.wrong[q.id].reps=(S.wrong[q.id].reps||0)+1;
+      if(S.wrong[q.id].reps>=2){delete S.wrong[q.id];} }
+  }else{
+    S.wrong[q.id]=S.wrong[q.id]||{reps:0}; S.wrong[q.id].reps=0;
+    S.wrong[q.id].k=quiz.k; S.wrong[q.id].uk=quiz.uk; S.wrong[q.id].tab=quiz.tab;
+  }
+  if(right)quiz.ok++;
+  save(S);
+  var fb=document.getElementById('fb');
+  fb.innerHTML=`<div class="exp"><b>${right?'✅ 答對':'❌ 答錯，正解 '+'ABCD'[correct]}</b>${
+    q.exp?'<br>'+esc(q.exp):'<br><span class="muted">（本題暫無詳解）</span>'}</div>
+    <button class="btn" style="margin-top:12px" id="nx">${quiz.i+1>=quiz.ids.length?'看成績':'下一題'}</button>`;
+  document.getElementById('nx').onclick=()=>{quiz.i++;paint()};
+  if(fb.scrollIntoView)fb.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function scoreView(){
+  var n=quiz.ids.length, pct=Math.round(quiz.ok/n*100);
+  var html=topBar('練習結果',false)+`<div class="card center">
+    <div style="font-size:46px">${pct>=80?'🎉':pct>=50?'👍':'💪'}</div>
+    <h2>${quiz.ok} / ${n} 題答對</h2>
+    <div class="prog" style="margin:14px 0"><i style="width:${pct}%"></i></div>
+    <button class="btn" onclick="setTab(view.tab)">回書系</button>
+    <button class="btn ghost" style="margin-top:10px" onclick="setTab('wrong')">看錯題本</button>
+  </div>`;
+  app.innerHTML=html;
+}
+
+/* ---------- 錯題本 ---------- */
+function wrongView(){
+  var ids=Object.keys(S.wrong);
+  var html=topBar('錯題本',false);
+  if(!ids.length){app.innerHTML=html+'<p class="center muted" style="margin-top:40px">目前沒有錯題 🎈<br>答錯的題目會收進這裡，答對 2 次即畢業。</p>';return}
+  // 依 tab/書系分組
+  var groups={};
+  ids.forEach(id=>{var w=S.wrong[id];var key=(w.tab||'?')+'|'+(w.k||'其他');
+    (groups[key]=groups[key]||[]).push(id);});
+  html+=`<div class="card center"><div class="stem" style="justify-content:center">共 ${ids.length} 題待複習</div>
+    <button class="btn" onclick="startWrong(${JSON.stringify(ids)},'錯題複習')">全部一起複習</button></div>`;
+  Object.keys(groups).forEach(g=>{
+    var[tab,k]=g.split('|');var list=groups[g];
+    var cName=(tab==='grammar'?DB.grammar:DB.reading);
+    var s=(cName&&cName.find(c=>c.key===k));var nm=s?s.name:k;
+    html+=`<button class="row" onclick='startWrong(${JSON.stringify(list)},"${esc(nm)}")'>
+      <div><div class="t">${esc(nm)}</div><div class="s">${list.length} 題 · ${tab==='grammar'?'文法':'閱讀'}</div></div>
+      <span class="chev">▶</span></button>`;
+  });
+  app.innerHTML=html;
+}
+
+/* ---------- 設定 ---------- */
+function settingsView(){
+  var acc=S.stat.ans?Math.round(S.stat.ok/S.stat.ans*100):0;
+  var totalQ=Object.keys(DB.Q).length, done=Object.keys(S.done).length;
+  var html=topBar('設定',false)+`
+  <div class="grid2">
+    <div class="stat"><div class="n">${done}</div><div class="l">已練題數 / ${totalQ}</div></div>
+    <div class="stat"><div class="n">${acc}%</div><div class="l">首答正確率</div></div>
+    <div class="stat"><div class="n">${Object.keys(S.wrong).length}</div><div class="l">錯題待複習</div></div>
+    <div class="stat"><div class="n">${S.stat.ans}</div><div class="l">累計作答</div></div>
+  </div>
+  <div class="card">
+    <h3>🔑 通行密碼</h3>
+    <p class="muted" style="font-size:13px">題庫資料以密碼加密（PBKDF2 + AES-256-GCM），輸入正確密碼才在本機解密。<br>
+    密碼於建置時設定，若要更換須用 <code>scripts/build.py</code> 重新建置。</p>
+    <button class="btn ghost sm" id="lock">登出（清除本機記住的密碼）</button>
+  </div>
+  <div class="card">
+    <h3>資料</h3>
+    <button class="btn ghost sm" style="color:var(--bad);border-color:var(--bad)" id="clr">清除所有練習進度</button>
+  </div>
+  <div class="copyr">📌 版權聲明：本題庫內容取自翰林等出版社之國中英語教材，著作權屬原出版社所有；資料已加密，僅供教師與學生於內部複習使用，未經授權不得散布或作商業用途。</div>
+  <div class="muted center" style="font-size:12px">國中英文題庫 內部版 · 資料 ${DB.ver}</div>`;
+  app.innerHTML=html;
+  document.getElementById('lock').onclick=()=>{LS.removeItem('gkq_pw');renderGate();};
+  document.getElementById('clr').onclick=()=>{
+    if(confirm('確定清除所有練習進度與錯題本？此動作無法復原。')){
+      S={wrong:{},done:{},read:{},stat:{ans:0,ok:0}};save(S);toast('已清除');paint();}
+  };
+}
+
+/* ---------- 路由 ---------- */
+function paint(){
+  window.scrollTo(0,0);
+  if(view.tab==='wrong'){wrongView();syncTab();return}
+  if(view.tab==='settings'){settingsView();syncTab();return}
+  var v=view.cur;
+  if(!v){homeList();syncTab();return}
+  if(v.t==='series')seriesView(v.k);
+  else if(v.t==='unit')unitView(v.k,v.u);
+  else if(v.t==='note')noteView(v.u);
+  else if(v.t==='psg')psgView(v.k,v.u);
+  else if(v.t==='quiz')quizView();
+  syncTab();
+}
+function syncTab(){
+  [...tabbar.children].forEach(b=>b.classList.toggle('on',b.dataset.t===view.tab));
+}
+function boot(){
+  tabbar.style.display='flex';
+  tabbar.innerHTML=[
+    ['grammar','📗','文法'],['reading','📘','閱讀'],
+    ['wrong','📝','錯題本'],['settings','⚙️','設定']
+  ].map(([t,ic,l])=>`<button data-t="${t}" onclick="setTab('${t}')">
+    <span class="ic">${ic}</span>${l}</button>`).join('');
+  setTab('grammar');
+}
+window.answer=answer;window.startQuiz=startQuiz;window.startWrong=startWrong;
+window.go=go;window.setTab=setTab;window.view=view;
+
+if(!('crypto'in window&&crypto.subtle)){
+  app.innerHTML='<div class="gate"><div class="lockbadge">⚠️</div><p class="center">此瀏覽器不支援解密（需 https 或較新瀏覽器）。<br>請用 Chrome/Edge，或透過「啟動手機版.bat」以網址開啟。</p></div>';
+}else{ autoUnlock(); }
+if('serviceWorker'in navigator&&location.protocol.startsWith('http')){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});}
+</script>
+</body>
+</html>

@@ -9,10 +9,11 @@ import json, os, hashlib, collections
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PROJ = os.path.dirname(HERE)
-SRC  = os.path.join(os.path.dirname(PROJ), '17_國中英語文法')
+# 來源檔已搬進本專案 _source/（gitignore，含翰林版權 master + 講義），本專案可獨立重建
+SRC  = os.path.join(PROJ, '_source')
 
-MASTER = os.path.join(SRC, '_封存_舊OCR與版權資料', 'master_copyrighted_backup.json')
-NOTES  = os.path.join(SRC, 'data', 'grammar_notes.json')
+MASTER = os.path.join(SRC, 'master_copyrighted_backup.json')
+NOTES  = os.path.join(SRC, 'grammar_notes.json')
 
 DEFAULT_PW = '1019'   # 使用者可在 App 設定內修改
 

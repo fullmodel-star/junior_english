@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#4338ca">
+<meta name="theme-color" content="#7b5bd6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="國中英文題庫">
@@ -12,19 +12,19 @@
 <title>國中英文題庫 · 內部版</title>
 <style>
 :root{
---bg:#eef1fb;--bg2:#e6eaf7;--card:#ffffff;--ink:#1b2036;--mut:#5a6480;--line:#e5e9f5;
---brand:#4338ca;--brand2:#7c5cf0;--accent:#f0f3ff;
+--bg:#f1eefb;--bg2:#e9e3f9;--card:#ffffff;--ink:#26224a;--mut:#6f6a86;--line:#ece8f8;
+--brand:#7b5bd6;--brand2:#a48ee6;--accent:#efeafb;
 --ok:#0e8f63;--okbg:#e7f7f0;--bad:#d63a50;--badbg:#fdeef0;--warn:#c47a00;
 --gold:#e6960f;--goldbg:#fff3dd;
---hero:linear-gradient(135deg,#4f46e5,#7c5cf0);
+--hero:linear-gradient(135deg,#7b5bd6,#9d86e6);
 --r:18px;--r2:14px;--r3:11px;
---sh:0 1px 3px rgba(30,36,80,.05),0 8px 22px rgba(30,36,80,.07);
---shg:0 6px 18px rgba(67,56,202,.28);}
+--sh:0 1px 3px rgba(40,30,90,.05),0 8px 22px rgba(40,30,90,.08);
+--shg:0 6px 18px rgba(123,91,214,.28);}
 @media(prefers-color-scheme:dark){:root{
---bg:#0f1220;--bg2:#141830;--card:#1a1f33;--ink:#e9ebf7;--mut:#a7b0d0;--line:#2a3050;
---brand:#8b83f5;--brand2:#a99cf8;--accent:#1e2440;
+--bg:#151228;--bg2:#1a1636;--card:#201b38;--ink:#ece7fb;--mut:#a79fc8;--line:#302a52;
+--brand:#b6a2ee;--brand2:#ccbcf5;--accent:#241f42;
 --ok:#2dd4a0;--okbg:#12352a;--bad:#ff8a95;--badbg:#3a1e26;--gold:#f5b843;--goldbg:#2e2410;
---hero:linear-gradient(135deg,#4f46e5,#6d5ae0);}}
+--hero:linear-gradient(135deg,#7b5bd6,#9d86e6);}}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;background:linear-gradient(180deg,var(--bg),var(--bg2));background-attachment:fixed;
 color:var(--ink);font-family:-apple-system,"Segoe UI","Noto Sans TC",system-ui,sans-serif;
@@ -49,9 +49,10 @@ color:#fff;padding:14px 18px;border-radius:14px;font-weight:800;width:100%;box-s
 .btn.ghost{background:none;color:var(--brand);border:1.5px solid var(--brand);box-shadow:none}
 .btn.sm{width:auto;padding:11px 16px;font-size:14px;border-radius:11px;min-height:44px}
 .iconbtn{min-width:44px;min-height:44px;display:grid;place-items:center;border-radius:11px;font-size:20px;color:var(--mut)}
-.top{position:sticky;top:0;background:var(--bg);padding:16px 2px 10px;z-index:20;display:flex;align-items:center;gap:6px;margin-bottom:2px}
-.top .back{font-size:26px;color:var(--brand)}
-.top h2{font-size:20px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.top{position:sticky;top:0;background:var(--hero);color:#fff;padding:14px 15px;padding-top:calc(13px + env(safe-area-inset-top));margin:0 -15px 12px;border-radius:0 0 18px 18px;z-index:20;display:flex;align-items:center;gap:6px;box-shadow:0 5px 16px rgba(123,91,214,.24);text-shadow:0 1px 2px rgba(0,0,0,.12)}
+.top .back{font-size:26px;color:#fff}
+.top h2{font-size:20px;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#fff}
+.top .back:focus-visible{outline-color:#fff}
 .tabbar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);display:flex;z-index:30;padding-bottom:env(safe-area-inset-bottom)}
 .tabbar button{flex:1;padding:9px 0 7px;font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center;gap:3px;font-weight:700;min-height:52px}
 .tabbar button .ic{font-size:21px;line-height:1;transition:transform .15s}
@@ -450,7 +451,7 @@ function mockStart(scope,n){var ids=sample(poolIds(scope),n);if(ids.length<n)n=i
   view.cur=null;go({t:'mock'});}
 function mockView(){var q=DB.Q[mock.ids[mock.i]];
   var left=Math.max(0,Math.round((mock.end-Date.now())/1000));
-  var html='<div class="top"><button class="back iconbtn" id="bk" aria-label="返回">‹</button><h2>模擬測驗</h2><span id="mtimer" style="font-weight:800;color:'+(left<60?'var(--bad)':'var(--brand)')+'">'+('0'+Math.floor(left/60)).slice(-2)+':'+('0'+(left%60)).slice(-2)+'</span></div>';
+  var html='<div class="top"><button class="back iconbtn" id="bk" aria-label="返回">‹</button><h2>模擬測驗</h2><span id="mtimer" style="font-weight:800;color:'+(left<60?'#ffd7d7':'#fff')+'">'+('0'+Math.floor(left/60)).slice(-2)+':'+('0'+(left%60)).slice(-2)+'</span></div>';
   html+='<div class="prog"><i style="width:'+pctOf(mock.i+1,mock.ids.length)+'%"></i></div>';
   html+='<div class="muted center" style="font-size:13px;margin:4px">第 '+(mock.i+1)+' / '+mock.ids.length+' 題 · 已答 '+mock.ans.filter(x=>x>=0).length+'</div>';
   html+='<div class="card">';

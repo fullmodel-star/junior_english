@@ -1,4 +1,6 @@
 # ── 絕不上傳：明文版權內容與建置暫存 ──
+# _source/ = 建置來源（含翰林版權 master + 講義），只留本機、不進 repo
+_source/
 # data_supplement/ = 子代理抽取的「明文」題目，只留本機
 data_supplement/
 node_modules/

@@ -147,12 +147,28 @@ PDB = {pid: passById[pid] for pid in usedPids if pid in passById}
 # 文法講義：topicKey -> note
 NOTES = {k: notes[k] for k in notes}
 
-# ---- 生字中文小字典（取自 master 2000 課綱字，非版權；供點字顯示中文）----
+# ---- 生字中文小字典（取自 master 2000 課綱字，非版權；供點字顯示中文＋造句練習）----
 DICT = {}
 for v in m.get('vocab', []):
     w = (v.get('word') or '').strip().lower()
     if w and w not in DICT:
-        DICT[w] = {'zh': v.get('zh', ''), 'pos': v.get('pos', '')}
+        DICT[w] = {'zh': v.get('zh', ''), 'pos': v.get('pos', ''),
+                   'eg': v.get('example', ''), 'egZh': v.get('exampleZh', '')}
+
+# ---- 合併補寫的詳解（子代理生成，data_supplement/exp_*.json）----
+EXP = {}
+for fn in sorted(os.listdir(SUPP)) if os.path.isdir(SUPP) else []:
+    if fn.startswith('exp_') and fn.endswith('.json'):
+        try:
+            EXP.update(json.load(open(os.path.join(SUPP, fn), encoding='utf-8')))
+        except Exception as e:
+            print('  ! 詳解檔讀取失敗', fn, e)
+_filled = 0
+for qid, q in QDB.items():
+    if not (q.get('exp') or '').strip() and EXP.get(qid):
+        q['exp'] = EXP[qid]
+        _filled += 1
+print('  補寫詳解：%d 題（來源 %d 筆）' % (_filled, len(EXP)))
 
 DATA = {
     'ver': '2.1-internal',

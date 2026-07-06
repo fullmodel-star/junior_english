@@ -63,6 +63,20 @@ const S=()=>JSON.parse(w.localStorage.getItem('gkq_v2'));
     // dict 存在
     console.assert(w.DB.dict&&Object.keys(w.DB.dict).length>500,'FAIL 生字字典缺');
     console.log('生字字典字數:',Object.keys(w.DB.dict).length);
+    // #2 模擬計時卷：設定→作答→提前交卷→結果
+    w.setTab('home');w.go({t:'mockcfg'});console.assert($('#mgo'),'FAIL 模擬設定頁缺');
+    $('#mgo').click();
+    console.assert(w.mock&&w.mock.ids.length>0&&$('#mtimer'),'FAIL 模擬卷未開始');
+    $$('#mopts .opt')[0].click();console.assert(w.mock.ans[0]===0,'FAIL 模擬選答未記');
+    d.getElementById('msub2').click(); // 提前交卷（confirm=>true）
+    console.assert(w.mock.score!=null&&/測驗結果/.test(d.body.textContent),'FAIL 模擬卷未出結果');
+    console.log('模擬卷:',w.mock.ids.length,'題，得分',w.mock.score);
+    // #3 生字造句練習
+    w.setTab('review');
+    console.assert(typeof w.usableVocab==='function','FAIL 無造句函式');
+    if(w.usableVocab().length){w.startUsage();
+      console.assert($('#uopts'),'FAIL 造句未開始');
+      $$('#uopts .opt')[0].click();console.assert(/正確|正解/.test($('#ufb').textContent),'FAIL 造句無回饋');}
     console.log('JS錯誤',errs.length,errs.slice(0,3));
     console.log(errs.length===0?'✅ v2.1 端到端全過':'⚠️ 有 JS 錯誤');
   }catch(e){console.log('❌ 例外',e.message,(e.stack||'').split('\n')[1]);}

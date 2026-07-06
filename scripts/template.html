@@ -247,9 +247,11 @@ function dashView(){
   html+='<div class="sechead">開始練習</div>';
   html+='<button class="row" data-tab="grammar"><div class="ava">📗</div><div style="flex:1"><div class="t">文法 · '+g[1]+' 題</div><div class="prog"><i style="width:'+pctOf(g[0],g[1])+'%"></i></div></div><span class="chev">›</span></button>';
   html+='<button class="row" data-tab="reading"><div class="ava">📘</div><div style="flex:1"><div class="t">閱讀 · '+r[1]+' 題</div><div class="prog"><i style="width:'+pctOf(r[0],r[1])+'%"></i></div></div><span class="chev">›</span></button>';
+  html+='<button class="row" data-mock="1"><div class="ava">⏱️</div><div><div class="t">計時模擬測驗</div><div class="s">整卷計時作答、最後統一檢討錯在哪</div></div><span class="chev">›</span></button>';
   app.innerHTML=html;
   app.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
   app.querySelectorAll('[data-vocab]').forEach(b=>b.onclick=()=>startVocab());
+  app.querySelectorAll('[data-mock]').forEach(b=>b.onclick=()=>go({t:'mockcfg'}));
   app.querySelectorAll('[data-nav="quiz"]').forEach(b=>b.onclick=()=>startQuiz(b.dataset.k,b.dataset.uk,'all'));
 }
 
@@ -424,6 +426,95 @@ function readZh(){var zh=document.getElementById('zh');if(zh){var w=vq.list[vq.i
 function vqFlip(){readZh();vq.flip=true;paint()}
 function vqRate(ok){readZh();var w=vq.list[vq.i],v=S.vocab[w];v.reps=ok?(v.reps||0)+1:0;save();vq.i++;vq.flip=false;paint();refreshFab()}
 
+/* ===== 模擬計時測驗 ===== */
+var mock=null,mockTimer=null;
+function poolIds(scope){var out=[];var src=scope==='grammar'?DB.grammar:scope==='reading'?DB.reading:DB.grammar.concat(DB.reading);
+  src.forEach(c=>c.units.forEach(u=>u.qids.forEach(id=>out.push(id))));return out;}
+function sample(arr,n){var a=arr.slice(),r=[];for(var i=0;i<n&&a.length;i++){var j=(i*2654435761+a.length*97+7)%a.length;r.push(a.splice(j,1)[0]);}return r;}
+function mockCfgView(){var html=topBar('模擬測驗設定',true);
+  var sc=view.mscope||'mixed',nn=view.mn||20;
+  html+='<div class="card"><h3>範圍</h3><div class="seg" id="mscope">'+[['grammar','📗 文法'],['reading','📘 閱讀'],['mixed','混合']].map(x=>'<button data-s="'+x[0]+'" class="'+(sc===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>'
+    +'<h3 style="margin-top:14px">題數（每題約 1 分鐘）</h3><div class="seg" id="mn">'+[10,20,30].map(x=>'<button data-n="'+x+'" class="'+(nn===x?'on':'')+'">'+x+' 題</button>').join('')+'</div></div>'
+    +'<button class="btn" id="mgo">開始測驗（'+nn+' 題 · 限時 '+nn+' 分）</button>';
+  app.innerHTML=html;bindBack();
+  app.querySelectorAll('#mscope button').forEach(b=>b.onclick=()=>{view.mscope=b.dataset.s;mockCfgView();});
+  app.querySelectorAll('#mn button').forEach(b=>b.onclick=()=>{view.mn=+b.dataset.n;mockCfgView();});
+  document.getElementById('mgo').onclick=()=>mockStart(sc,nn);}
+function mockStart(scope,n){var ids=sample(poolIds(scope),n);if(ids.length<n)n=ids.length;
+  mock={ids:ids,i:0,ans:new Array(ids.length).fill(-1),end:Date.now()+n*60000,scope:scope};
+  if(mockTimer)clearInterval(mockTimer);
+  mockTimer=setInterval(()=>{var el=document.getElementById('mtimer');
+    var left=Math.max(0,Math.round((mock.end-Date.now())/1000));
+    if(el)el.textContent=('0'+Math.floor(left/60)).slice(-2)+':'+('0'+(left%60)).slice(-2);
+    if(left<=0){clearInterval(mockTimer);mockSubmit();}},1000);
+  view.cur=null;go({t:'mock'});}
+function mockView(){var q=DB.Q[mock.ids[mock.i]];
+  var left=Math.max(0,Math.round((mock.end-Date.now())/1000));
+  var html='<div class="top"><button class="back iconbtn" id="bk" aria-label="返回">‹</button><h2>模擬測驗</h2><span id="mtimer" style="font-weight:800;color:'+(left<60?'var(--bad)':'var(--brand)')+'">'+('0'+Math.floor(left/60)).slice(-2)+':'+('0'+(left%60)).slice(-2)+'</span></div>';
+  html+='<div class="prog"><i style="width:'+pctOf(mock.i+1,mock.ids.length)+'%"></i></div>';
+  html+='<div class="muted center" style="font-size:13px;margin:4px">第 '+(mock.i+1)+' / '+mock.ids.length+' 題 · 已答 '+mock.ans.filter(x=>x>=0).length+'</div>';
+  html+='<div class="card">';
+  if(q.pid&&DB.P[q.pid])html+='<div class="psg">'+wrapWords(DB.P[q.pid].text)+'</div>';
+  html+='<div class="stem">'+wrapWords(q.stem)+'</div><div id="mopts">';
+  q.options.forEach((o,i)=>{html+='<button class="opt'+(mock.ans[mock.i]===i?' ok':'')+'" data-mp="'+i+'"><span class="k">'+'ABCD'[i]+'</span>'+esc(o)+'</button>';});
+  html+='</div></div>';
+  html+='<div style="display:flex;gap:10px"><button class="btn ghost" id="mprev"'+(mock.i===0?' disabled style="opacity:.4"':'')+'>← 上一題</button>'
+    +(mock.i+1>=mock.ids.length?'<button class="btn" id="msub">交卷</button>':'<button class="btn" id="mnext">下一題 →</button>')+'</div>';
+  html+='<button class="btn ghost sm" id="msub2" style="width:100%;margin-top:10px">提前交卷</button>';
+  app.innerHTML=html;
+  document.getElementById('bk').onclick=()=>{if(confirm('離開會結束這次測驗，確定？')){if(mockTimer)clearInterval(mockTimer);back();}};
+  app.querySelectorAll('#mopts .opt').forEach(el=>el.onclick=()=>{mock.ans[mock.i]=+el.dataset.mp;
+    app.querySelectorAll('#mopts .opt').forEach(x=>x.classList.remove('ok'));el.classList.add('ok');});
+  var pv=document.getElementById('mprev');if(pv)pv.onclick=()=>{if(mock.i>0){mock.i--;paint();}};
+  var nx=document.getElementById('mnext');if(nx)nx.onclick=()=>{mock.i++;paint();};
+  var sb=document.getElementById('msub'),sb2=document.getElementById('msub2');
+  if(sb)sb.onclick=mockSubmit; if(sb2)sb2.onclick=()=>{if(confirm('確定交卷？'))mockSubmit();};}
+function mockSubmit(){if(mockTimer)clearInterval(mockTimer);
+  var ok=0;mock.ids.forEach((id,i)=>{if(mock.ans[i]===DB.Q[id].answer)ok++;});mock.score=ok;
+  recordDay();save();view.cur={t:'mockresult'};paint();}
+function mockResultView(){var n=mock.ids.length,pct=pctOf(mock.score,n);
+  var html=topBar('測驗結果',false)+'<div class="card center"><div style="font-size:50px">'+(pct>=80?'🎉':pct>=50?'👍':'💪')+'</div>'
+    +'<h2>'+mock.score+' / '+n+' 題（'+pct+'%）</h2><div class="prog" style="margin:12px 0"><i style="width:'+pct+'%"></i></div>'
+    +'<div class="muted" style="font-size:13px">下方可逐題檢討，紅色為答錯</div></div>';
+  mock.ids.forEach((id,i)=>{var q=DB.Q[id],my=mock.ans[i],right=my===q.answer;
+    html+='<div class="card" style="border-left:4px solid '+(right?'var(--ok)':'var(--bad)')+'"><div class="s muted">第 '+(i+1)+' 題 '+(right?'✅':'❌')+'</div>'
+      +(q.pid&&DB.P[q.pid]?'<div class="psg" style="font-size:14px">'+wrapWords(DB.P[q.pid].text)+'</div>':'')
+      +'<div style="font-weight:700;margin:6px 0">'+wrapWords(q.stem)+'</div>';
+    q.options.forEach((o,j)=>{var mk=j===q.answer?'✔ ':(j===my&&!right?'✘ ':'');
+      html+='<div style="font-size:14px;color:'+(j===q.answer?'var(--ok)':(j===my&&!right?'var(--bad)':'var(--mut)'))+'">'+mk+'ABCD'[j]+'. '+esc(o)+'</div>';});
+    if(q.exp)html+='<div class="exp" style="margin-top:8px">'+wrapWords(q.exp)+'</div>';
+    html+='</div>';});
+  html+='<button class="btn" id="mdone">完成</button>';
+  app.innerHTML=html;document.getElementById('mdone').onclick=()=>setTab('home');}
+
+/* ===== 生字造句練習（用得出） ===== */
+var usq=null;
+function usableVocab(){return Object.keys(S.vocab).filter(w=>{var d=DB.dict[w];return d&&d.eg&&new RegExp('\\b'+w+'\\b','i').test(d.eg);});}
+function startUsage(){var list=usableVocab();if(list.length<1){toast('目前沒有可造句的生字（需字典有例句）');return}
+  usq={list:sample(list,Math.min(10,list.length)),i:0};view.tab='review';nav=[];go({t:'usage'});}
+function usageView(){if(usq.i>=usq.list.length){app.innerHTML=topBar('造句練習',false)+'<div class="card center"><div style="font-size:48px">🎉</div><h2>造句練習完成！</h2><button class="btn" id="ud">回複習</button></div>';document.getElementById('ud').onclick=()=>setTab('review');return;}
+  var w=usq.list[usq.i],d=DB.dict[w];
+  var blanked=d.eg.replace(new RegExp('\\b'+w+'\\b','i'),'______');
+  var pool=Object.keys(DB.dict).filter(x=>x!==w&&DB.dict[x].pos===d.pos);if(pool.length<3)pool=Object.keys(DB.dict).filter(x=>x!==w);
+  var opts=[w].concat(sample(pool,3));
+  // 洗牌（固定式）
+  for(var a=opts.length-1;a>0;a--){var b=(a*2654435761+usq.i*131+7)%(a+1);var t=opts[a];opts[a]=opts[b];opts[b]=t;}
+  var ans=opts.indexOf(w);
+  var html=topBar('生字造句  '+(usq.i+1)+'/'+usq.list.length,true);
+  html+='<div class="card"><div class="s muted">選出最適合填入空格的字</div><div class="stem" style="margin:8px 0">'+esc(blanked)+'</div>'
+    +'<div class="muted" style="font-size:13px;margin-bottom:8px">'+esc(d.egZh||'')+'</div><div id="uopts">';
+  opts.forEach((o,i)=>{html+='<button class="opt" data-u="'+i+'"><span class="k">'+'ABCD'[i]+'</span>'+esc(o)+'</button>';});
+  html+='</div><div id="ufb"></div></div>';
+  app.innerHTML=html;bindBack();
+  app.querySelectorAll('#uopts .opt').forEach(el=>el.onclick=()=>usageAns(+el.dataset.u,ans,w,d));}
+function usageAns(pick,ans,w,d){var right=pick===ans;
+  app.querySelectorAll('#uopts .opt').forEach((el,i)=>{el.onclick=null;if(i===ans)el.classList.add('ok');else if(i===pick)el.classList.add('bad');});
+  recordDay();if(right){var v=S.vocab[w];if(v){v.reps=Math.max(v.reps||0,2);}}save();
+  var fb=document.getElementById('ufb');
+  fb.innerHTML='<div class="exp"><b style="color:'+(right?'var(--ok)':'var(--bad)')+'">'+(right?'✅ 正確！':'❌ 正解：'+w)+'</b><br>'+esc(d.eg)+'<br><span class="muted">'+esc(d.egZh||'')+'</span></div>'
+    +'<button class="btn" style="margin-top:12px" id="unx">'+(usq.i+1>=usq.list.length?'完成':'下一題 →')+'</button>';
+  document.getElementById('unx').onclick=()=>{usq.i++;paint();};}
+
 /* ===== 設定 ===== */
 function settingsView(){var g=catStats(DB.grammar),r=catStats(DB.reading),done=g[0]+r[0],total=g[1]+r[1];
   var acc=pctOf(S.stat.ok,S.stat.ans);
@@ -461,6 +552,8 @@ function paint(){window.scrollTo(0,0);var v=view.cur;
   else if(v.t==='series')seriesView(v.k);else if(v.t==='unit')unitView(v.k,v.u);
   else if(v.t==='note')noteView(v.u);else if(v.t==='psg')psgView(v.k,v.u);
   else if(v.t==='quiz')quizView();else if(v.t==='vocabcard')vocabCardView();
+  else if(v.t==='mockcfg')mockCfgView();else if(v.t==='mock')mockView();
+  else if(v.t==='mockresult')mockResultView();else if(v.t==='usage')usageView();
   syncTab();refreshFab();}
 function syncTab(){[...tabbar.children].forEach(b=>b.classList.toggle('on',b.dataset.t===view.tab));}
 

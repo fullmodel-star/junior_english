@@ -202,12 +202,21 @@ function seriesDone(c){var t=0,d=0;c.units.forEach(u=>u.qids.forEach(id=>{t++;if
 /* ===== 弱點診斷 ===== */
 function weakUnits(){var arr=[];for(var key in S.us){var u=S.us[key];if(u.a>=4){arr.push({key:key,acc:u.o/u.a,a:u.a,kn:u.kn,un:u.un,k:u.k,uk:u.uk,tab:u.tab})}}
   arr.sort((x,y)=>x.acc-y.acc);return arr.filter(x=>x.acc<0.8).slice(0,3);}
+function weeklyReport(){var g=catStats(DB.grammar),r=catStats(DB.reading),wk=0;
+  for(var i=0;i<7;i++)wk+=S.days[dstr(-i)]||0;
+  var weak=weakUnits().map(x=>x.un+' '+Math.round(x.acc*100)+'%').join('、')||'—';
+  return['📊 國中英文題庫 · 學習週報 ('+today()+')',
+    '🔥 連續 '+S.streak+' 天 ｜ 近 7 天練 '+wk+' 題',
+    '✅ 首答正確率 '+pctOf(S.stat.ok,S.stat.ans)+'%（首答 '+S.stat.ans+' 題）',
+    '📗 文法 '+g[0]+'/'+g[1]+' 題 ｜ 📘 閱讀 '+r[0]+'/'+r[1]+' 題',
+    '🎯 最需加強：'+weak,
+    '⭐ 生字本 '+Object.keys(S.vocab).length+' 個 ｜ 錯題待複習 '+Object.keys(S.wrong).length+' 題'].join('\n');}
 
 /* ===== 首頁儀表板 ===== */
 function dashView(){
   var g=catStats(DB.grammar),r=catStats(DB.reading),done=g[0]+r[0],total=g[1]+r[1];
   var acc=pctOf(S.stat.ok,S.stat.ans),todayN=S.days[today()]||0,goalPct=Math.min(100,pctOf(todayN,S.goal));
-  var wrongN=Object.keys(S.wrong).length,vocabN=Object.keys(S.vocab).filter(w=>(S.vocab[w].reps||0)<2).length;
+  var wrongTot=Object.keys(S.wrong).length,dueN=dueWrong().length,vocabN=Object.keys(S.vocab).filter(w=>(S.vocab[w].reps||0)<2).length;
   var hr=new Date().getHours(),hi=hr<11?'早安 ☀️':hr<18?'午安 👋':'晚安 🌙';
   var html='<div class="hero"><div class="hi">'+hi+'，今天也一起加油！</div><div class="big">國中英文題庫</div>'
     +'<div style="display:flex;align-items:center;gap:16px">'
@@ -225,8 +234,8 @@ function dashView(){
       +'<div class="ava" style="background:var(--badbg);color:var(--bad)">'+Math.round(w.acc*100)+'%</div>'
       +'<div style="flex:1"><div class="t">'+esc(w.un||w.kn)+'</div><div class="s">'+esc(w.kn)+' · 首答對 '+Math.round(w.acc*w.a)+'/'+w.a+'</div></div><span class="chev">練 ›</span></button>';});}
   // 今天的複習
-  if(wrongN||vocabN){html+='<div class="sechead">📌 今天的複習</div>';
-    if(wrongN)html+='<button class="row" data-tab="review"><div class="ava">📝</div><div><div class="t">錯題本</div><div class="s">'+wrongN+' 題待複習 · 隔天再答對才畢業</div></div><span class="chev">›</span></button>';
+  if(wrongTot||vocabN){html+='<div class="sechead">📌 今天的複習</div>';
+    if(wrongTot)html+='<button class="row" data-tab="review"><div class="ava">📝</div><div><div class="t">錯題本'+(dueN?' · 今日到期 '+dueN:'')+'</div><div class="s">共 '+wrongTot+' 題 · 間隔複習、隔天再答對才畢業</div></div><span class="chev">›</span></button>';
     if(vocabN)html+='<button class="row" data-vocab="1"><div class="ava">⭐</div><div><div class="t">生字本</div><div class="s">'+vocabN+' 個生字待熟練 · 翻卡複習</div></div><span class="chev">›</span></button>';}
   // 每週趨勢
   html+='<div class="sechead">📅 最近 7 天</div><div class="card" style="padding:12px 14px"><div class="bars">';
@@ -263,17 +272,34 @@ function seriesView(k){var c=findSeries(k),isG=catOf(k)==='grammar';
     +'<div style="flex:1"><div class="t">'+esc(u.name)+' '+accBadge(k,u.key)+'</div><div class="s">'+u.qids.length+' 題 · 已練 '+d+note+'</div>'
     +'<div class="prog"><i style="width:'+pct+'%"></i></div></div><span class="chev">›</span></button>';});
   app.innerHTML=html;bindBack();bindRows();}
+var READ_TIPS={'文章':['先讀題目、再回文章找答案','首句與末句常藏主旨','生字用上下文猜意思'],
+  '記敘文章':['留意人事時地與事件順序','情緒與轉折處常出考點','用上下文猜生字'],
+  '書信':['先看寄件人、收件人與目的','注意時間、地點與邀約細節','禮貌與請求句型常考'],
+  '對話':['先抓兩人關係與情境','問句與回應要能對得起來','語氣詞透露態度'],
+  '圖表':['先看標題、座標與單位','比較大小、順序與趨勢','數字直接對到選項'],
+  '告示通知':['找時間、地點、對象、規則','注意例外與但書','標題常點出主題'],
+  '海報通知':['找活動、時間、地點、費用','注意報名或限制條件','大字通常是重點'],
+  '時式篇':['讀整句判斷時態與時間詞','注意動詞形式一致','前後邏輯連接詞是線索'],
+  '文意篇':['先掌握整段大意再填空','詞性與搭配詞要合','連接詞看語意轉折'],
+  '題組模擬考':['先易後難、不會先跳過','控制時間、別卡單題','檢查有沒有漏答'],
+  '單題':['看清楚題目問什麼','刪去明顯錯誤選項','不確定先標記再回頭']};
 function unitView(k,uk){var c=findSeries(k),u=c.units.find(x=>x.key===uk),isG=catOf(k)==='grammar';
   var html=topBar(u.name,true);var note=isG?DB.notes[uk]:null;
   if(note)html+='<button class="row" data-go="note" data-k="'+escAttr(k)+'" data-u="'+escAttr(uk)+'"><div class="ava">📖</div><div><div class="t">觀念講義'+(S.read[uk]?' ✓':'')+'</div><div class="s">先讀觀念、規則與常見錯誤</div></div><span class="chev">›</span></button>';
   if(!isG&&u.passages&&u.passages.length)html+='<button class="row" data-go="psg" data-k="'+escAttr(k)+'" data-u="'+escAttr(uk)+'"><div class="ava">📄</div><div><div class="t">閱讀文本</div><div class="s">'+u.passages.length+' 篇 · 點生字看中文</div></div><span class="chev">›</span></button>';
+  if(!isG&&READ_TIPS[u.name])html+='<div class="card" style="padding:13px 15px"><b style="font-size:14.5px">📖 '+esc(u.name)+' 解題策略</b><ul style="margin:7px 0 0;padding-left:20px;font-size:14px;color:var(--mut)">'+READ_TIPS[u.name].map(t=>'<li>'+esc(t)+'</li>').join('')+'</ul></div>';
   var d=u.qids.filter(id=>S.done[id]).length;
+  // 難易度分布與篩選
+  var dc={1:0,2:0,3:0};u.qids.forEach(id=>dc[qDiff(id)]=(dc[qDiff(id)]||0)+1);
+  var dsel=view.udiff||'all';
   html+='<div class="card center"><div style="font-size:15px;font-weight:700;margin-bottom:3px">'+u.qids.length+' 題 · 已練 '+d+' '+accBadge(k,uk)+'</div>'
-    +'<div class="prog" style="margin:8px 0 14px"><i style="width:'+pctOf(d,u.qids.length)+'%"></i></div>'
-    +'<button class="btn" id="qa">開始練習</button><button class="btn ghost sm" id="qu" style="width:100%;margin-top:10px">只練沒做過的</button></div>';
+    +'<div class="prog" style="margin:8px 0 12px"><i style="width:'+pctOf(d,u.qids.length)+'%"></i></div>'
+    +'<div class="seg" id="dseg">'+[['all','全部'],['1','★ 基礎 '+dc[1]],['2','★★ 中等 '+dc[2]],['3','★★★ 挑戰 '+dc[3]]].map(x=>'<button data-df="'+x[0]+'" class="'+(dsel===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>'
+    +'<button class="btn" id="qa">開始練習（由易到難）</button><button class="btn ghost sm" id="qu" style="width:100%;margin-top:10px">只練沒做過的</button></div>';
   app.innerHTML=html;bindBack();bindRows();
-  document.getElementById('qa').onclick=()=>startQuiz(k,uk,'all');
-  document.getElementById('qu').onclick=()=>startQuiz(k,uk,'undone');}
+  app.querySelectorAll('#dseg button').forEach(b=>b.onclick=()=>{view.udiff=b.dataset.df;unitView(k,uk);});
+  document.getElementById('qa').onclick=()=>startQuiz(k,uk,'all',dsel);
+  document.getElementById('qu').onclick=()=>startQuiz(k,uk,'undone',dsel);}
 function noteView(uk){var n=DB.notes[uk];S.read[uk]=1;save();
   var html=topBar('觀念講義',true)+'<div class="card note">';
   if(n.summary)html+='<p>'+wrapWords(n.summary)+'</p>';
@@ -290,10 +316,14 @@ function psgView(k,uk){var c=findSeries(k),u=c.units.find(x=>x.key===uk);
 
 /* ===== 測驗 ===== */
 var quiz=null;
-function startQuiz(k,uk,mode){var c=findSeries(k),u=c.units.find(x=>x.key===uk);if(!u){toast('找不到單元');return}
+function qDiff(id){return +(DB.Q[id].diff||2)}
+function startQuiz(k,uk,mode,diff){var c=findSeries(k),u=c.units.find(x=>x.key===uk);if(!u){toast('找不到單元');return}
   var ids=u.qids.slice();if(mode==='undone')ids=ids.filter(id=>!S.done[id]);
-  if(!ids.length){toast('這裡已全部練過 🎉');return}
+  if(diff&&diff!=='all')ids=ids.filter(id=>qDiff(id)===+diff);
+  ids.sort((a,b)=>qDiff(a)-qDiff(b)); // 由易到難
+  if(!ids.length){toast('沒有符合的題目');return}
   quiz={ids:ids,i:0,k:k,uk:uk,kn:c.name,un:u.name,tab:catOf(k),ok:0,src:'unit'};view.cur=null;go({t:'quiz'});}
+function dueWrong(){var t=today();return Object.keys(S.wrong).filter(id=>{var w=S.wrong[id];return !w.due||w.due<=t})}
 function startWrong(list,title){if(!list.length){toast('沒有待複習');return}quiz={ids:list.slice(),i:0,un:title,ok:0,src:'wrong'};go({t:'quiz'});}
 function quizView(){if(quiz.i>=quiz.ids.length)return scoreView();
   var q=DB.Q[quiz.ids[quiz.i]];
@@ -313,10 +343,12 @@ function answer(pick){var q=DB.Q[quiz.ids[quiz.i]],correct=q.answer,right=pick==
     if(quiz.src==='unit'){var uk=quiz.tab+'|'+quiz.k+'|'+quiz.uk,us=S.us[uk]||{a:0,o:0};us.a++;if(right)us.o++;
       us.kn=quiz.kn;us.un=quiz.un;us.tab=quiz.tab;us.k=quiz.k;us.uk=quiz.uk;S.us[uk]=us;}}
   if(right){S.done[q.id]=1;
-    if(S.wrong[q.id]){var w=S.wrong[q.id];w.days=w.days||[];var t=today();if(w.days.indexOf(t)<0)w.days.push(t);if(w.days.length>=2)delete S.wrong[q.id];}}
+    if(S.wrong[q.id]){var w=S.wrong[q.id];w.days=w.days||[];var t=today();if(w.days.indexOf(t)<0)w.days.push(t);
+      var IV=[1,3,7];w.ivl=Math.min((w.ivl||0)+1,IV.length-1);w.due=dstr(IV[w.ivl]); // 間隔加長
+      if(w.days.length>=2)delete S.wrong[q.id];}} // 需跨兩日答對才畢業
   else{var w=S.wrong[q.id]||{days:[]};
     if(quiz.src==='unit'){w.tab=quiz.tab;w.k=quiz.k;w.uk=quiz.uk;w.kn=quiz.kn;w.un=quiz.un;}
-    w.times=(w.times||0)+1;S.wrong[q.id]=w;}
+    w.times=(w.times||0)+1;w.ivl=0;w.due=dstr(1);S.wrong[q.id]=w;} // 明天到期複習
   if(right)quiz.ok++;save();refreshFab();
   var fb=document.getElementById('fb');
   fb.innerHTML='<div class="exp"><b style="color:'+(right?'var(--ok)':'var(--bad)')+'">'+(right?'✅ 答對了！':'❌ 答錯，正解 '+'ABCD'[correct])+'</b>'
@@ -347,7 +379,10 @@ function rvSeg(seg){view.rvseg=seg;var sw=document.getElementById('sw'),sv=docum
 function wrongBody(){var wids=Object.keys(S.wrong);
   if(!wids.length)return '<div class="empty"><div class="ic">🎈</div>目前沒有錯題<br>答錯的題會收進這裡，標明出處，<br>並要「隔天再答對」才畢業。</div>';
   var g={};wids.forEach(id=>{var w=S.wrong[id],tab=w.tab||'other',kn=w.kn||'其他',un=w.un||'';g[tab]=g[tab]||{};g[tab][kn]=g[tab][kn]||{};(g[tab][kn][un]=g[tab][kn][un]||[]).push(id);});
-  var html='<button class="btn" data-wl="'+escAttr(JSON.stringify(wids))+'" data-wn="全部錯題" style="margin:4px 0 6px">全部一起複習（'+wids.length+'）</button>';
+  var due=dueWrong();
+  var html='';
+  if(due.length)html+='<button class="btn" data-wl="'+escAttr(JSON.stringify(due))+'" data-wn="今日待複習" style="margin:4px 0 6px">⏰ 今日待複習（'+due.length+'）</button>';
+  html+='<button class="btn '+(due.length?'ghost':'')+'" data-wl="'+escAttr(JSON.stringify(wids))+'" data-wn="全部錯題" style="margin:4px 0 6px">全部一起複習（'+wids.length+'）</button>';
   var tn={grammar:'📗 文法',reading:'📘 閱讀',other:'其他'};
   Object.keys(g).forEach(tab=>{html+='<div class="sechead">'+(tn[tab]||tab)+'</div>';
     Object.keys(g[tab]).forEach(kn=>{var units=g[tab][kn],all=[];Object.keys(units).forEach(un=>all.push(...units[un]));
@@ -399,12 +434,17 @@ function settingsView(){var g=catStats(DB.grammar),r=catStats(DB.reading),done=g
   html+='<div class="card"><h3>🎯 每日目標</h3><div style="display:flex;gap:8px;align-items:center;margin-top:8px">';
   [10,20,30,50].forEach(n=>html+='<button class="btn '+(S.goal===n?'':'ghost')+' sm" data-goal="'+n+'" style="flex:1">'+n+' 題</button>');
   html+='</div></div>';
+  html+='<div class="card"><h3>📤 學習週報</h3><p class="muted" style="font-size:13px">產生本週學習摘要，可複製傳給家長／老師。</p><button class="btn ghost sm" id="rpt">產生週報</button><div id="rptbox"></div></div>';
   html+='<div class="card"><h3>🔑 通行密碼</h3><p class="muted" style="font-size:13px">題庫以密碼（PBKDF2 + AES-256-GCM）加密，輸入正確密碼才在本機解密。密碼於建置時設定，更換須重新建置。</p><button class="btn ghost sm" id="lock">登出（清除本機記住的密碼）</button></div>';
   html+='<div class="card"><h3>資料</h3><button class="btn ghost sm" id="clr" style="color:var(--bad);border-color:var(--bad)">清除所有練習進度</button></div>';
   html+='<div class="card" style="font-size:12px;color:var(--mut);line-height:1.7;border-style:dashed">📌 版權聲明：本題庫內容取自翰林等出版社之國中英語教材，著作權屬原出版社所有；資料已加密，僅供教師與學生於內部複習使用，未經授權不得散布或作商業用途。</div>';
   html+='<div class="muted center" style="font-size:12px">國中英文題庫 內部版 · '+total+' 題 · 資料 '+DB.ver+'</div>';
   app.innerHTML=html;
   app.querySelectorAll('[data-goal]').forEach(b=>b.onclick=()=>{S.goal=+b.dataset.goal;save();toast('每日目標設為 '+S.goal+' 題');settingsView();});
+  document.getElementById('rpt').onclick=()=>{var txt=weeklyReport();
+    document.getElementById('rptbox').innerHTML='<textarea id="rpttxt" readonly style="width:100%;height:150px;margin-top:10px;padding:12px;border-radius:12px;border:1.5px solid var(--line);background:var(--accent);color:var(--ink);font:inherit;white-space:pre">'+esc(txt)+'</textarea><button class="btn sm" id="rptcp" style="width:100%;margin-top:8px">📋 複製週報</button>';
+    document.getElementById('rptcp').onclick=()=>{var t=document.getElementById('rpttxt');t.select();
+      if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>toast('已複製 ✓'),()=>toast('請長按文字複製'));else{try{document.execCommand('copy');toast('已複製 ✓')}catch(e){toast('請長按文字複製')}}};};
   document.getElementById('lock').onclick=()=>{LS.removeItem('gkq_pw');renderGate();};
   document.getElementById('clr').onclick=()=>{if(confirm('確定清除所有練習進度、錯題本與生字本？無法復原。')){S={wrong:{},done:{},read:{},stat:{ans:0,ok:0},vocab:{},days:{},streak:0,lastDay:'',first:{},us:{},goal:S.goal};save();toast('已清除');paint();refreshFab();}};}
 

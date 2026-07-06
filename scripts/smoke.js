@@ -26,8 +26,11 @@ const S=()=>JSON.parse(w.localStorage.getItem('gkq_v2'));
     // 練習
     w.setTab('grammar');$$('.row').find(r=>/單元/.test(r.textContent)).click();
     $$('.row').find(r=>/題/.test(r.textContent)).click();
+    console.assert($('#dseg'),'FAIL 無難易度選擇');  // 難易度分層
     $$('.btn').find(b=>/開始練習/.test(b.textContent)).click();
     console.assert($('#opts'),'FAIL 無題目');
+    // 由易到難：首題難度<=末題
+    console.assert(( +(w.DB.Q[w.quiz.ids[0]].diff||2) )<=( +(w.DB.Q[w.quiz.ids[w.quiz.ids.length-1]].diff||2) ),'FAIL 未由易到難');
     // 點字→彈窗（不立即加入）
     const wd=$('.wd');let sheetOpened=false,vocabAdded=false;
     if(wd){wd.click();sheetOpened=$('#sheet').classList.contains('on');
@@ -54,8 +57,9 @@ const S=()=>JSON.parse(w.localStorage.getItem('gkq_v2'));
     w.setTab('reading');$$('.row').find(r=>/單元/.test(r.textContent)).click();
     $$('.row').find(r=>/題/.test(r.textContent)).click();$$('.btn').find(b=>/開始練習/.test(b.textContent)).click();
     const rq=w.DB.Q[w.quiz.ids[0]];console.assert(!rq.pid||$('.psg'),'FAIL 閱讀無文本');
-    // 設定：每日目標
-    w.setTab('settings');console.assert(/每日目標/.test(d.body.textContent)&&/版權聲明/.test(d.body.textContent),'FAIL 設定缺');
+    // 設定：每日目標 + 週報
+    w.setTab('settings');console.assert(/每日目標/.test(d.body.textContent)&&/版權聲明/.test(d.body.textContent)&&/學習週報/.test(d.body.textContent),'FAIL 設定缺');
+    $('#rpt').click();console.assert($('#rpttxt')&&/學習週報/.test($('#rpttxt').value),'FAIL 週報未產生');
     // dict 存在
     console.assert(w.DB.dict&&Object.keys(w.DB.dict).length>500,'FAIL 生字字典缺');
     console.log('生字字典字數:',Object.keys(w.DB.dict).length);

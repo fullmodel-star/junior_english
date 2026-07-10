@@ -143,6 +143,10 @@ var S=load();
 S.wrong=S.wrong||{};S.done=S.done||{};S.read=S.read||{};S.stat=S.stat||{ans:0,ok:0};
 S.vocab=S.vocab||{};S.days=S.days||{};S.streak=S.streak||0;S.lastDay=S.lastDay||'';
 S.first=S.first||{};S.us=S.us||{};S.goal=S.goal||20;
+/* 忍者修行：跨App共用經驗錢包(同網域，灌進火影修行計畫) */
+const NINJA_APP='jeng';
+window.Ninja=window.Ninja||(function(){var K='ninja_xp_v1';function L(){try{return JSON.parse(localStorage.getItem(K))||{}}catch(e){return{}}}function G(){var w=L();w.xp=w.xp||0;w.bySrc=w.bySrc||{};w.correct=w.correct||0;w.units=w.units||0;w.jutsu=w.jutsu||[];w.seen=w.seen||{};return w}function P(w){w.ts=Date.now();try{localStorage.setItem(K,JSON.stringify(w))}catch(e){}}return{get:G,gain:function(n,a,o){o=o||{};var w=G();w.xp+=n;w.bySrc[a]=(w.bySrc[a]||0)+n;w.correct+=(o.correct||0);w.units+=(o.unit||0);P(w);return w},backfill:function(a,x,o){var w=G();if(w.seen[a])return w;o=o||{};w.xp+=x;w.bySrc[a]=(w.bySrc[a]||0)+x;w.correct+=(o.correct||0);w.units+=(o.unit||0);w.seen[a]=1;P(w);return w}}})();
+(function(){try{Ninja.backfill(NINJA_APP,(S.stat.ok||0)*10,{correct:S.stat.ok||0});}catch(e){}})();
 var app=document.getElementById('app'),tabbar=document.getElementById('tabbar'),fab=document.getElementById('fab'),
     sheet=document.getElementById('sheet'),sheetbox=document.getElementById('sheetbox');
 function esc(t){return(t==null?'':''+t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
@@ -342,7 +346,7 @@ function answer(pick){var q=DB.Q[quiz.ids[quiz.i]],correct=q.answer,right=pick==
   document.querySelectorAll('#opts .opt').forEach((el,i)=>{el.onclick=null;if(i===correct)el.classList.add('ok');else if(i===pick)el.classList.add('bad');});
   recordDay();
   var firstTime=!S.first[q.id];
-  if(firstTime){S.first[q.id]=1;S.stat.ans++;if(right)S.stat.ok++;
+  if(firstTime){S.first[q.id]=1;S.stat.ans++;if(right){S.stat.ok++;Ninja.gain(10,NINJA_APP,{correct:1});}
     if(quiz.src==='unit'){var uk=quiz.tab+'|'+quiz.k+'|'+quiz.uk,us=S.us[uk]||{a:0,o:0};us.a++;if(right)us.o++;
       us.kn=quiz.kn;us.un=quiz.un;us.tab=quiz.tab;us.k=quiz.k;us.uk=quiz.uk;S.us[uk]=us;}}
   if(right){S.done[q.id]=1;

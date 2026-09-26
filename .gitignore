@@ -1,0 +1,17 @@
+# ── 絕不上傳：明文版權內容與建置暫存 ──
+# _source/ = 建置來源（含翰林版權 master + 講義），只留本機、不進 repo
+_source/
+# data_supplement/ = 子代理抽取的「明文」題目，只留本機
+data_supplement/
+# _gfill_batches/、_gfill_out/ = 總複習填空審查的中繼檔
+# 兩者都含明文題幹/選項/答案（版權），只留本機，重跑：
+#   python scripts/gen_gfill_candidates.py → 子代理審 → python scripts/merge_gfill.py
+_gfill_batches/
+_gfill_out/
+node_modules/
+_shot*.html
+*.plain.json
+_gkq_data_plain.json
+
+# 只公開加密後的 index.html + 圖示 + manifest/sw + README。
+# scripts/ 內只有建置程式與版面模板，無題庫內容，故保留。

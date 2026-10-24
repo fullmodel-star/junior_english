@@ -1,0 +1,14 @@
+/* 由 packages/lively/sync_lively.py 產生，請勿手改（改 apps.json 再重跑）。
+   914_junior_english｜主題色相來源 #2E86A8｜engine=juniorq｜level=full */
+:root{--lv-engine:juniorq;--lv-level:full}
+html:not([data-theme="dark"]),html:not([data-theme="dark"]) body{
+  --lv-btn:#63B5D4;--lv-btn-d:#3E92B2;--lv-ink:#113A4A;--lv-acc:#277390;
+  --lv-soft:#E6F4F9;--lv-soft2:#CBE3EC;
+}
+html[data-theme="dark"],html[data-theme="dark"] body{
+  --lv-btn:#63B5D4;--lv-btn-d:#3E92B2;--lv-ink:#113A4A;--lv-acc:#57AFD1;
+  --lv-soft:#253941;--lv-soft2:#375662;
+}
+@media (prefers-color-scheme:dark){html:not([data-theme]),html:not([data-theme]) body{
+  --lv-acc:#57AFD1;--lv-soft:#253941;--lv-soft2:#375662;
+}}

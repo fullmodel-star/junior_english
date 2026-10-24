@@ -1,0 +1,135 @@
+/* 活潑層 engine：juniorq（914 國中英文題庫 內部版：書系→主題單元的四選一題庫＋錯題本＋生字本＋總複習）
+   來源：packages/lively/engines/juniorq.css → 914 的 lively-engine.css
+   上鎖 App：index.html 由 scripts/build.py＋scripts/template.html 產生（題庫加密內嵌），
+   template.html 也帶 LIVELY 標記，重建後外觀不會掉。這裡只改外觀，不碰答案判定、錯題本、密碼閘。 */
+
+/* ---------- 把 App 原本的變數接到色票（App 深色寫在 @media(dark){:root}，a11yx 再補一次）→ :root:root:root＋body 一次蓋過 ---------- */
+:root:root:root,body{
+  --bg:var(--lv-paper); --bg2:var(--lv-paper); --card:var(--lv-card); --ink:var(--lv-text); --mut:var(--lv-muted); --muted:var(--lv-muted);
+  --line:var(--lv-line); --brand:var(--lv-acc); --brand2:var(--lv-acc); --accent:var(--lv-soft);
+  --ok:var(--lv-ok); --okbg:var(--lv-ok-soft); --bad:var(--lv-no); --badbg:var(--lv-no-soft); --warn:var(--lv-sun);
+  --gold:var(--lv-sun); --goldbg:var(--lv-sun-soft); --hero:var(--lv-soft);
+  --sh:0 0 0 1.5px var(--lv-line),0 4px 0 var(--lv-line); --shg:0 4px 0 var(--lv-btn-d);
+}
+html,body{background-color:var(--lv-paper)}
+
+/* ---------- 頁首：App 原本是深湖藍底＋白字 → 淡底（核心）＋深色字；山形淺色換官方深色版 ---------- */
+.top{background:var(--lv-soft);color:var(--lv-text)}
+.top h2,.top .back{color:var(--lv-text)}
+.top .back{background:var(--lv-card);box-shadow:0 0 0 1.5px var(--lv-line),0 3px 0 var(--lv-line);width:40px;min-width:40px;height:40px;min-height:40px;border-radius:13px;font-size:24px}
+.top .back:active{transform:translateY(2px);box-shadow:0 0 0 1.5px var(--lv-line),0 1px 0 var(--lv-line)}
+.top .back:focus-visible{outline-color:var(--lv-acc)}
+#mtimer{color:var(--lv-acc)!important;font-family:"LvNum",system-ui,sans-serif;background:var(--lv-card);border-radius:12px;padding:4px 10px;box-shadow:0 0 0 1.5px var(--lv-line)}
+.rl-appbar img.rl-glyph{content:url(rl-mark-everest-navy.png)}
+html[data-theme="dark"] .rl-appbar img.rl-glyph{content:url(rl-mark-everest-white.png)}
+@media (prefers-color-scheme:dark){html:not([data-theme="light"]) .rl-appbar img.rl-glyph{content:url(rl-mark-everest-white.png)}}
+
+/* 數字用圓體 */
+.tile .n,.ring>i,.hero .streak,.cta,.opt .k,.center h2{font-family:"LvNum",system-ui,-apple-system,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif}
+
+/* ---------- 首頁：歡迎卡（原本深色實底）→ 淡主色底＋深色字；圓環用主色 ---------- */
+.hero{background:var(--lv-soft);color:var(--lv-text);box-shadow:0 0 0 1.5px var(--lv-soft2),0 5px 0 var(--lv-soft2)}
+.hero::after{background:var(--lv-soft2);opacity:.55}
+.hero .big{color:var(--lv-acc)}
+.hero .hi{opacity:1;color:var(--lv-muted)}
+.hero .streak{background:var(--lv-sun-soft);color:var(--lv-sun);box-shadow:0 0 0 1.5px var(--lv-line)}
+.hero [style*="opacity:.9"]{opacity:1!important;color:var(--lv-muted)}
+.ring{background:conic-gradient(var(--lv-btn) calc(var(--p)*1%),var(--lv-card) 0);box-shadow:0 0 0 1.5px var(--lv-soft2)}
+.ring>i{background:var(--lv-soft);color:var(--lv-text)}
+.hero .lv-stamp-goal{right:12px;top:12px}
+.tiles .tile{border:0;border-radius:18px;box-shadow:0 0 0 1.5px var(--lv-line),0 4px 0 var(--lv-line)}
+.tile .n{font-size:24px;font-weight:900;color:var(--lv-acc)}
+.tiles .tile:nth-child(2) .n{color:var(--lv-ok)}
+.tiles .tile:nth-child(3) .n{color:var(--lv-sun)}
+.sechead{color:var(--lv-muted)}
+.bars .b .bar{background:var(--lv-btn)}
+.bars .b.today .bar{background:#F2C14E}
+
+/* ---------- 卡片、列 ---------- */
+.card{border:0;border-radius:20px;box-shadow:0 0 0 1.5px var(--lv-line),0 4px 0 var(--lv-line)}
+.firstrun{border-left:0;box-shadow:inset 4px 0 0 var(--lv-btn),0 0 0 1.5px var(--lv-line)}
+.row{border:0;border-radius:18px;box-shadow:0 0 0 1.5px var(--lv-line),0 4px 0 var(--lv-line);transition:transform .08s,box-shadow .08s}
+button.row:hover{box-shadow:0 0 0 2px var(--lv-btn),0 4px 0 var(--lv-btn-d)}
+button.row:active{transform:translateY(3px);box-shadow:0 0 0 1.5px var(--lv-line),0 1px 0 var(--lv-line)}
+/* 列首圖示：線條圖示放在彩色小方塊裡 */
+.row .ava{background:var(--lv-soft);color:var(--lv-acc)}
+.row .ava .lv-line{width:24px;height:24px}
+.row[data-tab="reading"] .ava,.row[data-mock] .ava{background:var(--lv-sun-soft);color:var(--lv-sun)}
+.row[data-vocab] .ava{background:var(--lv-sun-soft);color:var(--lv-sun)}
+.row[data-tab="review"] .ava{background:var(--lv-no-soft);color:var(--lv-no)}
+.row .chev{color:var(--lv-muted)}
+@media (prefers-reduced-motion:no-preference){
+  .row .ava.lv-has-line{transition:transform .2s cubic-bezier(.3,1.6,.5,1)}
+  button.row:hover .ava.lv-has-line{transform:rotate(-8deg) scale(1.08)}
+}
+.prog{background:var(--lv-line)}
+.prog>i{background:var(--lv-btn)}
+.pill{background:var(--lv-soft);color:var(--lv-acc)}
+.seg{background:var(--lv-soft);border-radius:14px}
+.seg button{border-radius:11px}
+.seg button.on{background:var(--lv-card);color:var(--lv-acc);box-shadow:0 0 0 1.5px var(--lv-soft2),0 2px 0 var(--lv-soft2)}
+.seg button .lv-line-inline:first-child{margin-left:0}
+
+/* ---------- 按鈕：中淺色底＋深色字、有厚度 ---------- */
+.btn{background:var(--lv-btn);color:var(--lv-ink);border-radius:16px;box-shadow:0 4px 0 var(--lv-btn-d);transition:transform .08s,box-shadow .08s}
+.btn:not([disabled]):active{transform:translateY(3px);box-shadow:0 1px 0 var(--lv-btn-d)}
+.btn.ghost{background:var(--lv-card);color:var(--lv-text);border:0;box-shadow:0 0 0 1.5px var(--lv-line),0 4px 0 var(--lv-line)}
+.btn.ghost:not([disabled]):active{box-shadow:0 0 0 1.5px var(--lv-line),0 1px 0 var(--lv-line)}
+.btn[disabled]{box-shadow:none}
+.btn .lv-line-inline:first-child{margin-left:0}
+/* 清除進度：App 行內寫死 color/border var(--bad) → 淡紅塊 */
+#clr{background:var(--lv-no-soft)!important;color:var(--lv-no)!important;box-shadow:0 0 0 1.5px var(--lv-no-line),0 4px 0 var(--lv-no-line)!important}
+/* 首頁唯一主要行動：保留暖金（首訪說明寫「按金色鈕」，改色會對不上），加上厚度與呼吸 */
+.cta{background:#F2C14E;color:#1B1405;border-radius:18px;box-shadow:0 5px 0 #C08A1E}
+.cta small{color:#1B1405;font-family:system-ui,-apple-system,"Segoe UI","PingFang TC","Microsoft JhengHei",sans-serif}
+.cta:active{transform:translateY(4px);box-shadow:0 1px 0 #C08A1E}
+.iconbtn.lv-has-line .lv-line{width:20px;height:20px}
+/* 生字浮動鈕（原本金色實底）→ 暖陽淡色塊＋線條星星 */
+.fab{background:var(--lv-sun-soft);color:var(--lv-sun);box-shadow:0 0 0 1.5px var(--lv-line),0 4px 0 var(--lv-line)}
+.fab .lv-line-inline:first-child{margin-left:0}
+
+/* ---------- 作答：答對綠、答錯珊瑚紅 ---------- */
+.opt{border:0;border-radius:16px;box-shadow:0 0 0 1.5px var(--lv-line),0 3px 0 var(--lv-line)}
+.opt:active{transform:translateY(3px);box-shadow:0 0 0 1.5px var(--lv-line),0 0 0 var(--lv-line)}
+.opt .k{background:var(--lv-soft);color:var(--lv-acc);border-radius:9px}
+.opt.ok{background:var(--lv-ok-soft);color:var(--lv-ok);box-shadow:0 0 0 2px var(--lv-ok-line),0 3px 0 var(--lv-ok-line)}
+.opt.ok .k{background:var(--lv-ok-k);color:#fff}
+.opt.bad{background:var(--lv-no-soft);color:var(--lv-no);box-shadow:0 0 0 2px var(--lv-no-line),0 3px 0 var(--lv-no-line)}
+.opt.bad .k{background:var(--lv-no-k);color:#fff}
+/* 模擬測驗：.ok 只是「我選了這個」（還沒對答案）→ 用主色選取，不用答對綠，免得像在洩答案 */
+#mopts .opt.ok{background:var(--lv-soft);color:var(--lv-text);box-shadow:0 0 0 2px var(--lv-btn),0 3px 0 var(--lv-btn-d)}
+#mopts .opt.ok .k{background:var(--lv-btn);color:var(--lv-ink);animation:none}
+.exp{background:var(--lv-soft);border:0;box-shadow:0 0 0 1.5px var(--lv-soft2);border-radius:14px}
+.psg{background:var(--lv-card);border:0;box-shadow:0 0 0 1.5px var(--lv-line);border-radius:14px}
+.psgfold>summary{background:var(--lv-soft);border:0;box-shadow:0 0 0 1.5px var(--lv-line)}
+.wd{border-bottom-color:color-mix(in srgb,var(--lv-sun) 60%,transparent)}
+.wd.saved{background:var(--lv-sun-soft)}
+input[type=password],input[type=text]{border-radius:14px;background:var(--lv-card);color:var(--lv-text)}
+input[type=text]:focus,input[type=password]:focus{border-color:var(--lv-btn);outline:none}
+#rvgf{font-family:"LvWord","LvNum",system-ui,-apple-system,"Segoe UI",sans-serif;font-weight:700;font-size:18px}
+
+/* ---------- 生字翻卡／查字：英文寫在四線格上（.lv-four 由 lively.js 加） ---------- */
+.flash .word.lv-four{font-size:36px;max-width:100%;overflow-wrap:anywhere}
+.sheet .w.lv-four{font-size:28px;display:inline-block}
+.sheet .box{box-shadow:0 -1.5px 0 var(--lv-line)}
+
+/* ---------- 結果頁：彩色插圖＋紅筆圈章 ---------- */
+.lv-jq-result{position:relative}
+.lv-jq-result > div:first-child .lv-ico{width:64px;height:64px;margin:0 auto}
+
+/* ---------- 底部選單（App 本來就是線條圖示）：選中的那格填淡色並彈一下 ---------- */
+.tabbar{background:var(--lv-card);border-top:1.5px solid var(--lv-line)}
+.tabbar button .ic{display:flex;align-items:center;justify-content:center;width:50px;height:30px;border-radius:15px;transition:background .2s}
+.tabbar button.on{color:var(--lv-acc)}
+.tabbar button.on .ic{background:var(--lv-soft);transform:none}
+.tabbar button .ic svg{stroke-width:1.9}
+.tabbar button.on .ic svg{stroke-width:2.2}
+
+@media (prefers-reduced-motion:no-preference){
+  .cta{animation:lvJqBreath 2.8s ease-in-out infinite}
+  .cta:active{animation:none}
+  .tabbar button.on .ic svg{animation:lvPop .4s cubic-bezier(.3,1.6,.5,1)}
+}
+/* App 自己的「答對彈一下」「抽屜滑上來」沒有看系統的減少動態設定 → 這裡補上 */
+@media (prefers-reduced-motion:reduce){.opt.ok .k,.sheet .box{animation:none!important}.row,.btn,.tabbar button .ic{transition:none}}
+@keyframes lvJqBreath{0%,100%{box-shadow:0 5px 0 #C08A1E,0 0 0 0 transparent}50%{box-shadow:0 5px 0 #C08A1E,0 0 0 7px rgba(242,193,78,.3)}}
